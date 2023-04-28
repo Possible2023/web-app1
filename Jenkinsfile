@@ -1,4 +1,3 @@
- /*
 node{
     def MHD = tool name: "maven3.8.4"
     stage('code'){
@@ -8,7 +7,6 @@ node{
        sh "${MHD}/bin/mvn clean package"
  
     }
-  */
     /*
     stage('deploy'){
   sshagent(['tomcat']) {
