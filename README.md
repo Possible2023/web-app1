@@ -1,5 +1,5 @@
 # web-app
-# old sefadzi is now new
+# old sefadzi
 # new commit
 # commit
 # Done
