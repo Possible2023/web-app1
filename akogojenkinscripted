@@ -1,0 +1,56 @@
+node(""){
+    
+def MHD = tool name: "maven3.8.8"
+def jomacs = "${MHD}/bin/mvn"
+     
+    stage("1. Git clone from repo"){
+        sh "echo start of git clone"
+        git branch: 'main', url: 'https://github.com/Possible2023/web-app1.git'
+        sh "echo end of git clone"
+    }
+    
+    stage("2. Build fromMaven"){
+        sh "echo start building from maven"
+        sh "${jomacs} clean package"
+        sh "echo end of building from maven"
+    }
+    stage("3. Sonarqube Scan"){
+        sh "echo start code scan"
+        sh "${jomacs} sonar:sonar"
+        sh "echo end of code scan"
+    }
+    
+      stage("4. Slack Notification to Developers"){
+       sh "echo send notification to Developers"
+       slackSend channel: '#ci-cd', message: 'Successful Installing and scanning of build artifact.'
+   }
+    
+    stage("5. Store the Artifact in Nexus"){
+        sh "echo start uploading of artifact"
+        sh "${jomacs} deploy"
+        sh "echo end of upload to Nexus"
+    }
+    stage("6. Deploy to Tomcat"){
+        sh "echo starvdeploying to tomcat server"
+        deploy adapters: [tomcat9(credentialsId: 'tomcatT', path: '', url: 'http://3.89.232.99:8080')], contextPath: null, war: 'target/*.war'
+        sh "echo end of deploying to tomcat"
+    }
+    
+    stage("7. Approval by PM"){
+        sh " echo Aproval Required from PM"
+        timeout(time:3, unit: 'DAYS'){
+         input messgae: "Approval to Deploy to Production Env"
+        }
+    }
+    
+    stage("8. Deploy to Tomcat in Prod Env"){
+        sh "echo starvdeploying to tomcat server"
+        deploy adapters: [tomcat9(credentialsId: 'tomcatT', path: '', url: 'http://3.89.232.99:8080')], contextPath: null, war: 'target/*.war'
+        sh "echo end of deploying to tomcat server in Prod Env"
+    }
+     stage("9. Email Notification"){
+        sh "echo send successful deployment to tomcat email notification to developers"
+        emailext body: 'Tomcat deployment was successful in UAT env server', subject: 'Successful Deployment to Tomcat', to: 'spy1gh@gmail.com'
+    }
+    
+}
